@@ -9,7 +9,7 @@
  */
 declare(strict_types=1);
 
-namespace Exo\System;
+namespace Exo\Factory;
 
 /**
  * Singleton
@@ -39,7 +39,7 @@ abstract class Singleton
 	/**
 	 * Instance getter
 	 *
-	 * @return \Exo\System\Singleton
+	 * @return \Exo\Factory\Singleton
 	 */
 	public static function getInstance(): Singleton
 	{

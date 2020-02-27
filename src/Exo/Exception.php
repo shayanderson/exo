@@ -19,7 +19,7 @@ namespace Exo;
  */
 class Exception extends \Exception
 {
-	protected $code = 500; #next set as Response::code
+	protected $code = 500;
 	protected $data;
 
 	public function __construct(string $message = "", int $code = 0, \Throwable $previous = null,
@@ -62,7 +62,7 @@ class Exception extends \Exception
 		}
 		else
 		{
-			$info['code'] = 500; #next set Response::code
+			$info['code'] = 500;
 		}
 
 		if(method_exists($th, 'getMethod'))

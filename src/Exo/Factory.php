@@ -12,14 +12,14 @@ declare(strict_types=1);
 namespace Exo;
 
 /**
- * System
+ * Factory
  *
- * @author Shay Anderson
+ * @author Shay Anderson #docs
  *
- * @method \Exo\System getInstance()
+ * @method \Exo\Factory getInstance()
  * @method \Exo\Request request()
  */
-class System extends System\Singleton
+class Factory extends Factory\Singleton
 {
 	private static $map = [
 	];
@@ -40,6 +40,6 @@ class System extends System\Singleton
 			return (self::$map_singleton[$method])::getInstance();
 		}
 
-		throw new Exception("Invalid system method \"{$method}\"");
+		throw new Exception("Invalid \Exo\Factory method \"{$method}\"");
 	}
 }

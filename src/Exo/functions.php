@@ -19,9 +19,9 @@ declare(strict_types=1);
 /**
  * Exo object getter
  *
- * @return \Exo\System
+ * @return \Exo\Factory
  */
-function exo(): \Exo\System
+function exo(): \Exo\Factory
 {
-	return \Exo\System::getInstance();
+	return \Exo\Factory::getInstance();
 }

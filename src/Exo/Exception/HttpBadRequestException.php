@@ -19,5 +19,6 @@ namespace Exo\Exception;
  */
 class HttpBadRequestException extends HttpException
 {
-	protected $code = 400; #next respose::code
+	protected $code = 400;
+	protected $message = 'Bad request';
 }

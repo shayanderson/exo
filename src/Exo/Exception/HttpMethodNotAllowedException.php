@@ -12,18 +12,13 @@ declare(strict_types=1);
 namespace Exo\Exception;
 
 /**
- * HTTP not found exception
+ * HTTP method not allowed exception
  *
  * @author Shay Anderson
  * #docs
  */
-class HttpNotFoundException extends HttpException
+class HttpMethodNotAllowedException extends HttpException
 {
-	protected $code = 404;
-
-	public function __construct(string $message = "", int $code = 0, \Throwable $previous = null)
-	{
-		parent::__construct('Not found', $code, $previous,
-			['route' => \Exo\Factory::getInstance()->request()->uri()]);
-	}
+	protected $code = 405;
+	protected $message = 'Method not allowed';
 }

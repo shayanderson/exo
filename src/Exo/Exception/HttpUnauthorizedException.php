@@ -12,12 +12,13 @@ declare(strict_types=1);
 namespace Exo\Exception;
 
 /**
- * Class description
+ * HTTP unauthorized exception
  *
  * @author Shay Anderson
  * #docs
  */
 class HttpUnauthorizedException extends HttpException
 {
-	protected $code = 401; #next respose::code
+	protected $code = 401;
+	protected $message = 'Unauthorized';
 }

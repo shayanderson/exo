@@ -17,11 +17,11 @@ namespace Exo;
  * @author Shay Anderson
  * #docs
  */
-class Request extends System\Singleton
+class Request extends Factory\Singleton
 {
 	public function server($key)
 	{
-		return $_SERVER[$key] ?? null; #next filter these values
+		return $_SERVER[$key] ?? null; #todo filter these values
 	}
 
 	public function uri(bool $query_string = true): string

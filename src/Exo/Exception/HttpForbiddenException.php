@@ -12,12 +12,13 @@ declare(strict_types=1);
 namespace Exo\Exception;
 
 /**
- * Class description
+ * HTTP forbidden exception
  *
  * @author Shay Anderson
  * #docs
  */
 class HttpForbiddenException extends HttpException
 {
-	protected $code = 403; #next respose::code
+	protected $code = 403;
+	protected $message = 'Forbidden';
 }

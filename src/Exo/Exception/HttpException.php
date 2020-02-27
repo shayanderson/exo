@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace Exo\Exception;
 
 /**
- * HTTP Exception
+ * HTTP exception
  *
  * @author Shay Anderson
  * #docs
