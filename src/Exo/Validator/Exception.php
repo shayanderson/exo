@@ -7,8 +7,14 @@
  * @license MIT License <https://github.com/shayanderson/exo/blob/master/LICENSE>
  * @link <https://github.com/shayanderson/exo>
  */
+declare(strict_types=1);
+
+namespace Exo\Validator;
 
 /**
- * Exo version
+ * Validator exception
+ *
+ * @author Shay Anderson
+ * #docs
  */
-const EXO_VERSION = '0.0.7';
+class Exception extends \Exo\Exception {}

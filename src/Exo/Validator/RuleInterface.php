@@ -7,8 +7,19 @@
  * @license MIT License <https://github.com/shayanderson/exo/blob/master/LICENSE>
  * @link <https://github.com/shayanderson/exo>
  */
+declare(strict_types=1);
+
+namespace Exo\Validator;
 
 /**
- * Exo version
+ * Rule interface
+ *
+ * @author Shay Anderson
+ * #docs
  */
-const EXO_VERSION = '0.0.7';
+interface RuleInterface
+{
+	public function getMessage(): string;
+	public function setMessage(string $message): void;
+	public function validate($value): bool;
+}

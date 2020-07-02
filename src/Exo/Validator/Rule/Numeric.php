@@ -7,8 +7,22 @@
  * @license MIT License <https://github.com/shayanderson/exo/blob/master/LICENSE>
  * @link <https://github.com/shayanderson/exo>
  */
+declare(strict_types=1);
+
+namespace Exo\Validator\Rule;
 
 /**
- * Exo version
+ * Numeric rule
+ *
+ * @author Shay Anderson
+ * #docs
  */
-const EXO_VERSION = '0.0.7';
+class Numeric extends \Exo\Validator\Rule
+{
+	protected $message = 'must be numeric';
+
+	public function validate($value): bool
+	{
+		return is_numeric($value);
+	}
+}

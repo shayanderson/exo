@@ -16,6 +16,7 @@ namespace Exo;
  *
  * @author Shay Anderson
  * #docs
+ * #todo if debug is enabled output file, line in exception automatically and full backtrace...CONF_EXO_DEBUG
  */
 class Exception extends \Exception
 {
@@ -41,10 +42,14 @@ class Exception extends \Exception
 
 	final public function getMethod(): ?string
 	{
-		if(( $class = ( $this->getTrace()[0]['class'] ?? null )))
+		if(($class = ( $this->getTrace()[0]['class'] ?? null )))
 		{
 			return $class . ( $this->getTrace()[0]['type'] ?? null )
 				. ( $this->getTrace()[0]['function'] ?? null ) . '()';
+		}
+		else if(($func = ( $this->getTrace()[0]['function'] ?? null )))
+		{
+			return $func . '()';
 		}
 
 		return null;
@@ -77,6 +82,6 @@ class Exception extends \Exception
 			$info['data'] = $th->getData();
 		}
 
-		$handler($info, $th);
+		$handler($info);
 	}
 }

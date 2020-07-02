@@ -19,8 +19,6 @@ namespace Exo\Factory;
  */
 abstract class Singleton
 {
-	private static $instances = [];
-
 	/**
 	 * Protected
 	 */
@@ -44,12 +42,20 @@ abstract class Singleton
 	public static function getInstance(): Singleton
 	{
 		$class = static::class;
+		$instances = &static::getInstances();
 
-		if(!isset(self::$instances[$class]))
+		if(!isset($instances[$class]))
 		{
-			self::$instances[$class] = new static;
+			$instances[$class] = new static;
 		}
 
-		return self::$instances[$class];
+		return $instances[$class];
 	}
+
+	/**
+	 * Instances getter
+	 *
+	 * @return array
+	 */
+	abstract protected static function &getInstances(): array;
 }

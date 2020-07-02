@@ -16,30 +16,41 @@ namespace Exo;
  *
  * @author Shay Anderson #docs
  *
- * @method \Exo\Factory getInstance()
+ * @method \Exo\Logger logger()
+ * @method \Exo\Map map(array $map = null)
+ * @method \Exo\Options options(array $options = null)
  * @method \Exo\Request request()
+ * @method \Exo\Share share()
+ * @method \Exo\Validator validator()
  */
-class Factory extends Factory\Singleton
+class Factory extends Factory\Mapper
 {
-	private static $map = [
+	private static $classes = [
+		'logger' => '\Exo\Logger',
+		'map' => '\Exo\Map',
+		'options' => '\Exo\Options',
+		'request' => '\Exo\Request',
+		'share' => '\Exo\Share',
+		'validator' => '\Exo\Validator'
 	];
 
-	private static $map_singleton = [
-		'request' => '\Exo\Request'
-	];
+	private static $instances = [];
 
-	public function __call($method, $args)
+	public static function debug(?string $message, ...$context)
 	{
-		if(isset(self::$map[$method]))
+		if(defined('EXO_DEBUG') && EXO_DEBUG)
 		{
-
+			self::getInstance()->logger()->exo->debug($message, ...$context);
 		}
+	}
 
-		if(isset(self::$map_singleton[$method]))
-		{
-			return (self::$map_singleton[$method])::getInstance();
-		}
+	protected static function &getClasses(): array
+	{
+		return self::$classes;
+	}
 
-		throw new Exception("Invalid \Exo\Factory method \"{$method}\"");
+	protected static function &getInstances(): array
+	{
+		return self::$instances;
 	}
 }
