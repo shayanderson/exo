@@ -15,31 +15,63 @@ namespace Exo;
  * Exception
  *
  * @author Shay Anderson
- * #docs
- * #todo if debug is enabled output file, line in exception automatically and full backtrace...CONF_EXO_DEBUG
  */
 class Exception extends \Exception
 {
+	/**
+	 * Status code
+	 *
+	 * @var int
+	 */
 	protected $code = 500;
-	protected $data;
 
-	public function __construct(string $message = "", int $code = 0, \Throwable $previous = null,
-		array $data = null)
+	/**
+	 * Context
+	 *
+	 * @var array
+	 */
+	protected $context;
+
+	/**
+	 * Init
+	 *
+	 * @param string $message
+	 * @param int $code
+	 * @param array $context
+	 * @param \Throwable $previous
+	 */
+	public function __construct(string $message = '', array $context = null, int $code = 0,
+		\Throwable $previous = null)
 	{
 		parent::__construct($message, $code, $previous);
-		$this->data = $data;
+		$this->context = $context;
 	}
 
+	/**
+	 * Args getter
+	 *
+	 * @return array|null
+	 */
 	final public function getArgs(): ?array
 	{
 		return ( $this->getTrace()[0]['args'] ?? null );
 	}
 
-	final public function getData(): ?array
+	/**
+	 * Context getter
+	 *
+	 * @return array|null
+	 */
+	final public function getContext(): ?array
 	{
-		return $this->data;
+		return $this->context;
 	}
 
+	/**
+	 * Method getter
+	 *
+	 * @return string|null
+	 */
 	final public function getMethod(): ?string
 	{
 		if(($class = ( $this->getTrace()[0]['class'] ?? null )))
@@ -55,6 +87,13 @@ class Exception extends \Exception
 		return null;
 	}
 
+	/**
+	 * Handle an exception
+	 *
+	 * @param \Throwable $th
+	 * @param callable $handler
+	 * @return void
+	 */
 	public static function handle(\Throwable $th, callable $handler): void
 	{
 		$info = [
@@ -77,9 +116,9 @@ class Exception extends \Exception
 
 		$info['message'] = $th->getMessage();
 
-		if(method_exists($th, 'getData') && $th->getData())
+		if(method_exists($th, 'getContext') && $th->getContext())
 		{
-			$info['data'] = $th->getData();
+			$info['context'] = $th->getContext();
 		}
 
 		$handler($info);

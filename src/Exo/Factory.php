@@ -14,42 +14,85 @@ namespace Exo;
 /**
  * Factory
  *
- * @author Shay Anderson #docs
+ * @author Shay Anderson
  *
+ * @method \Exo\App\Cli cli()
+ * @method \Exo\App\Env env()
  * @method \Exo\Logger logger()
- * @method \Exo\Map map(array $map = null)
- * @method \Exo\Options options(array $options = null)
- * @method \Exo\Request request()
+ * @method \Exo\App\Http\Request request()
+ * @method \Exo\App\Http\Response response()
+ * @method \Exo\App\Http\Request\Session session()
  * @method \Exo\Share share()
- * @method \Exo\Validator validator()
+ * @method \Exo\Validator validator(string $name)
  */
 class Factory extends Factory\Mapper
 {
+	/**
+	 * Class map
+	 *
+	 * @var array
+	 */
 	private static $classes = [
-		'logger' => '\Exo\Logger',
-		'map' => '\Exo\Map',
-		'options' => '\Exo\Options',
-		'request' => '\Exo\Request',
-		'share' => '\Exo\Share',
-		'validator' => '\Exo\Validator'
+		'cli' => App\Cli::class,
+		'env' => App\Env::class,
+		'logger' => Logger::class,
+		'request' => App\Http\Request::class,
+		'response' => App\Http\Response::class,
+		'session' => App\Http\Request\Session::class,
+		'share' => Share::class,
+		'validator' => Validator::class
 	];
 
+	/**
+	 * Instances
+	 *
+	 * @var array
+	 */
 	private static $instances = [];
 
-	public static function debug(?string $message, ...$context)
+	/**
+	 * Call
+	 *
+	 * @param string $name
+	 * @param array $args
+	 * @return mixed
+	 */
+	final public function __call(string $name, array $args)
 	{
-		if(defined('EXO_DEBUG') && EXO_DEBUG)
+		if($name === 'cli' && !\Exo\App\Cli::isCli()) // do not allow CLI object access if not CLI
 		{
-			self::getInstance()->logger()->exo->debug($message, ...$context);
+			return;
 		}
+
+		// do not log logger (redundant) + its used in System::debug() (infinite loop)
+		if(System::isDebugging() && $name !== 'logger')
+		{
+			System::debug(__METHOD__, [
+				'method' => $name,
+				'class' => self::$classes[$name] ?? null,
+				'args' => $args
+			]);
+		}
+
+		return parent::__call($name, $args);
 	}
 
-	protected static function &getClasses(): array
+	/**
+	 * Classes getter
+	 *
+	 * @return array
+	 */
+	protected static function &classes(): array
 	{
 		return self::$classes;
 	}
 
-	protected static function &getInstances(): array
+	/**
+	 * Instances getter
+	 *
+	 * @return array
+	 */
+	protected static function &instances(): array
 	{
 		return self::$instances;
 	}

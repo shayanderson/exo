@@ -15,11 +15,29 @@ namespace Exo\Validator;
  * Rule interface
  *
  * @author Shay Anderson
- * #docs
  */
 interface RuleInterface
 {
+	/**
+	 * Message getter
+	 *
+	 * @return string
+	 */
 	public function getMessage(): string;
+
+	/**
+	 * Message setter
+	 *
+	 * @param string $message
+	 * @return void
+	 */
 	public function setMessage(string $message): void;
+
+	/**
+	 * Validate
+	 *
+	 * @param mixed $value
+	 * @return bool
+	 */
 	public function validate($value): bool;
 }

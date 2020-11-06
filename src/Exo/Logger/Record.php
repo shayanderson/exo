@@ -11,38 +11,81 @@ declare(strict_types=1);
 
 namespace Exo\Logger;
 
+use Exo\Exception;
 use Exo\Logger;
 
 /**
  * Logger record
  *
  * @author Shay Anderson
- * #docs
- *
- * logger message props:
- *		message
- *		context
- *		level (int)
- *		level_name
- *		channel
- *		timestamp
  */
 class Record
 {
+	/**
+	 * Channel
+	 *
+	 * @var string|null
+	 */
 	public $channel;
+
+	/**
+	 * Context
+	 *
+	 * @var array
+	 */
 	public $context;
+
+	/**
+	 * Logger level
+	 *
+	 * @var int
+	 */
 	public $level;
+
+	/**
+	 * Logger level name
+	 *
+	 * @var string
+	 */
 	public $levelName;
+
+	/**
+	 * Message
+	 *
+	 * @var string|null
+	 */
 	public $message;
+
+	/**
+	 * Unix timestamp
+	 *
+	 * @var int
+	 */
 	public $timestamp;
 
-	public function __construct(int $level, ?string $message, array $context, ?string $channel)
+	/**
+	 * Init
+	 *
+	 * @param int $level
+	 * @param string|null $message
+	 * @param mixed $context
+	 * @param string|null $channel
+	 */
+	public function __construct(int $level, ?string $message, $context, ?string $channel)
 	{
+		if(!$message && !$context && !$channel)
+		{
+			throw new Exception('Logger record cannot have empty message, context and channel');
+		}
+
 		$this->level = $level;
 		$this->levelName = Logger::getLevelName($level);
 		$this->message = $message;
 		$this->context = $context;
-		$this->channel = $channel;
+		if($channel !== '')
+		{
+			$this->channel = $channel;
+		}
 		$this->timestamp = time();
 	}
 }

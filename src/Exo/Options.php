@@ -28,7 +28,7 @@ class Options
 	/**
 	 * Validators
 	 *
-	 * @var array (of \Exo\Validators)
+	 * @var array (of \Exo\Validator)
 	 */
 	private $validators = [];
 
@@ -121,13 +121,18 @@ class Options
 	 * @return \Exo\Validator
 	 * @throws Exception (option already exists)
 	 */
-	final public function &option(string $key): \Exo\Validator
+	final public function &option(string $key, $defaultValue = null): \Exo\Validator
 	{
 		$this->__initMap();
 		if($this->map->has($key))
 		{
 			throw new Exception('Option "' . $key . '" already exists before using '
 				. __METHOD__ . '()');
+		}
+
+		if(func_num_args() === 2) // default value setter
+		{
+			$this->set($key, $defaultValue);
 		}
 
 		if(isset($this->validators[$key]))
@@ -211,9 +216,10 @@ class Options
 	 */
 	final private function validatorAssert(string $key, $value): void
 	{
-		if(isset($this->validators[$key]))
+		if(isset($this->validators[$key])
+			&& ( $validatorType = &$this->validators[$key]->typeObject() ) !== null)
 		{
-			$this->validators[$key]->assert($value);
+			$validatorType->assert($value);
 		}
 	}
 }

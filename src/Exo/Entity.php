@@ -11,155 +11,284 @@ declare(strict_types=1);
 
 namespace Exo;
 
+use Exo\Entity\Property;
+
 /**
  * Model entity
  *
  * @author Shay Anderson
- * #docs
  */
 abstract class Entity
 {
+	/**
+	 * Class properties
+	 *
+	 * @var array
+	 */
+	private $__classProps__;
+
+	/**
+	 * Voidable flag
+	 *
+	 * @var bool
+	 */
+	private $__isVoidable__ = false;
+
 	/**
 	 * Properties
 	 *
 	 * @var \Exo\Map
 	 */
-	private $__map;
+	private $__props__;
 
-	private $__validators = [];
-
+	/**
+	 * Init
+	 *
+	 * @param array $data
+	 */
 	public function __construct(array $data = null)
 	{
-		$this->__map = new \Exo\Map;
-
-		foreach($this->getProps() as $k => $v)
+		$this->__props__ = [];
+		$this->__classProps__ = get_object_vars($this);
+		unset(
+			$this->__classProps__['__classProps__'],
+			$this->__classProps__['__isVoidable__'],
+			$this->__classProps__['__props__']
+		);
+		foreach($this->__classProps__ as $k => $v)
 		{
-			if($v instanceof Validator) // prop => validator
-			{
-				$v->setName($k); // set validator name
-				$this->__validators[$k] = $v;
-				$this->__map->set($k, null);
-			}
-			else // prop only
-			{
-				$this->__map->set($v, null);
-			}
+			$this->__classProps__[$k] = true;
 		}
+		$this->register();
 
-		$props = get_object_vars($this);
-		unset($props['__map'], $props['__validators']);
-		foreach($props as $prop => $v)
+		if($data)
 		{
-			if($this->__map->has($prop))
-			{
-				throw new Exception('Class property "' . $prop . '" cannot exist in Entity'
-					. ' class "' . static::class . '" and also be returned by ' . static::class
-					. '::getProps()');
-			}
-		}
-
-		if($data) // setter
-		{
-			foreach($data as $k => $v)
-			{
-				$this->__set($k, $v);
-			}
+			$this->fromArray($data);
 		}
 	}
 
-	final public function __get(string $property)
+	/**
+	 * Getter
+	 *
+	 * @param mixed $name
+	 * @return mixed
+	 */
+	final public function __get($name)
 	{
-		$this->verifyPropExists($property);
-		$this->assert($property, $this->__map->get($property));
-
-		return $this->__map->get($property);
+		return $this->getProp($name)->getValue();
 	}
 
-	final public function __set(string $property, $value): void
+	/**
+	 * Init (ensure self constructor has been called)
+	 *
+	 * @return void
+	 * @throws \Exo\Exception
+	 */
+	private function __init(): void
 	{
-		$this->verifyPropExists($property);
-		$this->assert($property, $value);
-
-		$this->__map->set($property, $value);
-	}
-
-	final private function assert(string $property, $value): void
-	{
-		if(isset($this->__validators[$property]))
+		if($this->__props__ === null)
 		{
-			$this->__validators[$property]->assert($value);
+			throw new Exception('Entity parent::__construct() must be called in'
+				. ' ' . static::class . ' before calling ' . static::class . '::register()');
 		}
 	}
 
-	final public function fromArray(array $props): void
+	/**
+	 * Value setter
+	 *
+	 * @param mixed $name
+	 * @param mixed $value
+	 * @return void
+	 */
+	final public function __set($name, $value): void
 	{
-		foreach($props as $k => $v)
+		$this->getProp($name)->setValue($value);
+	}
+
+	/**
+	 * Deregister a property
+	 *
+	 * @param mixed $name
+	 * @return void
+	 */
+	final public function deregisterProperty($name): void
+	{
+		$this->verifyPropExists($name);
+		unset($this->__props__[$name]);
+	}
+
+	/**
+	 * Value setter from array
+	 *
+	 * @param array $data
+	 * @return void
+	 */
+	final public function fromArray(array $data): void
+	{
+		foreach($data as $k => $v)
 		{
 			$this->__set($k, $v);
 		}
 	}
 
-	abstract protected function getProps(): array;
-
-	final public function &toArray(array $filter = null): array
+	/**
+	 * Prop object getter
+	 *
+	 * @param mixed $name
+	 * @return \Exo\Entity\Property
+	 */
+	private function &getProp($name): Property
 	{
-		$arr = $this->__map->toArray();
+		$this->verifyPropExists($name);
+		return $this->__props__[$name];
+	}
 
-		if($filter)
+	/**
+	 * Check if property exists
+	 *
+	 * @param mixed $name
+	 * @return bool
+	 */
+	final public function hasProperty($name): bool
+	{
+		$this->__init();
+		return isset($this->__props__[$name]);
+	}
+
+	/**
+	 * Check if voidable property exists
+	 *
+	 * @return bool
+	 */
+	final public function hasVoidableProperty(): bool
+	{
+		$this->__init();
+		foreach($this->__props__ as $prop)
 		{
-			$rm = in_array(0, $filter);
-
-			foreach($arr as $k => $v)
+			if($prop->isVoidable())
 			{
-				if($rm) // remove
-				{
-					if(isset($filter[$k]) && $filter[$k] === 0)
-					{
-						unset($arr[$k]);
-					}
-				}
-				else // include
-				{
-					if(isset($filter[$k]) && $filter[$k] === 1)
-					{
-						continue;
-					}
-
-					unset($arr[$k]);
-				}
+				return true;
 			}
 		}
 
-		foreach($arr as $k => $v)
-		{
-			$this->assert($k, $v);
-		}
-
-		return $arr;
+		return false;
 	}
 
-	final public function validator(): \Exo\Validator
+	/**
+	 * Check if globally voidable
+	 *
+	 * @return bool
+	 */
+	final public function isVoidable(): bool
 	{
-		return new Validator;
+		return $this->__isVoidable__;
 	}
 
-	final private function verifyInit(): void
+	/**
+	 * Property setter
+	 *
+	 * @param mixed $name
+	 * @param mixed $default
+	 * @return \Exo\Entity\Property
+	 * @throws \Exo\Exception (on class property exists)
+	 */
+	final public function &property($name, $default = null): Property
 	{
-		if(!$this->__map)
+		$this->__init();
+
+		if(isset($this->__classProps__[$name]))
 		{
-			throw new Exception('Entity parent::__construct() must be called in'
-				. ' "' . static::class . '", before property getters or setters are used');
+			throw new Exception('Class property "' . $name . '" cannot exist in Entity'
+				. ' class ' . static::class . ' and also be set by ' . static::class
+				. '::property("' . $name . '")');
+		}
+
+		$this->__props__[$name] = new Property($name, static::class);
+
+		if(func_num_args() > 1)
+		{
+			$this->__props__[$name]->default($default);
+		}
+
+		return $this->__props__[$name];
+	}
+
+	/**
+	 * Register properties
+	 */
+	abstract protected function register(): void;
+
+	/**
+	 * Property key/values as array getter
+	 *
+	 * @param array $filter (ex: include only: [key => 1], exclude only: [key => 0])
+	 * @param bool $voidable (allow voidable props to be missing)
+	 * @return array
+	 */
+	final public function &toArray(array $filter = null, bool $voidable = false): array
+	{
+		$this->__init();
+
+		$map = [];
+		$props = $this->__props__;
+
+		if($filter)
+		{
+			$props = Map::arrayFilterKeys($props, $filter);
+		}
+
+		/* @var $prop \Exo\Entity\Property */
+		foreach($props as $prop)
+		{
+			// property is voidable + is void
+			if($voidable && $prop->isVoid() && !$prop->isNotVoidable())
+			{
+				continue;
+			}
+
+			// global voidable + is void
+			if($voidable && $this->__isVoidable__ && !$prop->hasValue() && !$prop->isNotVoidable())
+			{
+				continue;
+			}
+
+			$map[$prop->getName()] = $prop->getValue($voidable);
+
+			if($prop->hasRef())
+			{
+				// override for ref assertion
+				$map[$prop->getName()] = $prop->getRef()->toArray(null, $voidable);
+			}
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Verify prop exists
+	 *
+	 * @param mixed $name
+	 * @return void
+	 * @throws \Exo\Exception (on prop does not exist)
+	 */
+	final private function verifyPropExists($name): void
+	{
+		$this->__init();
+
+		if(!isset($this->__props__[$name]))
+		{
+			throw new Exception('Property "' . $name . '" does not exist in Entity class'
+				. ' ' . static::class);
 		}
 	}
 
-	final private function verifyPropExists(string $property): void
+	/**
+	 * Allow all properties voidable
+	 *
+	 * @return void
+	 */
+	final protected function voidable(): void
 	{
-		$this->verifyInit();
-
-		if(!$this->__map->has($property))
-		{
-			throw new Exception('Property "' . $property . '" does not exist in Entity class'
-				. ' "' . static::class . '"');
-		}
+		$this->__isVoidable__ = true;
 	}
 }

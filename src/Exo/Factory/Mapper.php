@@ -14,10 +14,9 @@ namespace Exo\Factory;
 use Exo\Exception;
 
 /**
- * Mapper
+ * Mapper factory
  *
  * @author Shay Anderson
- * #docs
  */
 abstract class Mapper extends Singleton
 {
@@ -27,11 +26,11 @@ abstract class Mapper extends Singleton
 	 * @param string $name
 	 * @param array $args
 	 * @return mixed
-	 * @throws Exception (class does not exist in classes)
+	 * @throws \Exo\Exception (on class does not exist in classes)
 	 */
 	public function __call(string $name, array $args)
 	{
-		$classes = &static::getClasses();
+		$classes = &static::classes();
 
 		if(!isset($classes[$name]))
 		{
@@ -40,7 +39,7 @@ abstract class Mapper extends Singleton
 		}
 
 		// singleton
-		if((new \ReflectionClass($classes[$name]))->isSubclassOf('\Exo\Factory\Singleton'))
+		if((new \ReflectionClass($classes[$name]))->isSubclassOf(\Exo\Factory\Singleton::class))
 		{
 			return ($classes[$name])::getInstance();
 		}
@@ -53,5 +52,5 @@ abstract class Mapper extends Singleton
 	 *
 	 * @return array
 	 */
-	abstract protected static function &getClasses(): array;
+	abstract protected static function &classes(): array;
 }

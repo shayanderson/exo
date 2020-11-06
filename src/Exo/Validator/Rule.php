@@ -12,30 +12,35 @@ declare(strict_types=1);
 namespace Exo\Validator;
 
 /**
- * Validator rule
+ * Validator type rule
  *
  * @author Shay Anderson
- * #docs
  */
 abstract class Rule implements RuleInterface
 {
+	/**
+	 * Message
+	 *
+	 * @var string
+	 */
 	protected $message = 'unknown error';
 
+	/**
+	 * Message getter
+	 *
+	 * @return string
+	 */
 	public function getMessage(): string
 	{
 		return $this->message;
 	}
 
-	protected function scalarOrNull($value)
-	{
-		if(is_scalar($value))
-		{
-			return $value;
-		}
-
-		return null;
-	}
-
+	/**
+	 * Message setter
+	 *
+	 * @param string $message
+	 * @return void
+	 */
 	public function setMessage(string $message): void
 	{
 		$this->message = $message;

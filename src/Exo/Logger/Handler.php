@@ -12,25 +12,55 @@ declare(strict_types=1);
 namespace Exo\Logger;
 
 use Exo\Logger;
+use Exo\Map;
 
 /**
  * Logger handler
  *
  * @author Shay Anderson
- * #docs
  */
 abstract class Handler implements HandlerInterface
 {
+	/**
+	 * Channel filter
+	 *
+	 * @var array
+	 */
+	protected $channelFilter;
+
+	/**
+	 * Logger level
+	 *
+	 * @var int
+	 */
 	protected $level;
 
-	#todo add $excludeChannels = []; so can not do handling for specific channels like ['eco']
-	public function __construct(int $level = Logger::LEVEL_DEBUG)
+	/**
+	 * Init
+	 *
+	 * @param int $level
+	 * @param array $channelFilter
+	 */
+	public function __construct(int $level = Logger::LEVEL_DEBUG, array $channelFilter = null)
 	{
 		$this->level = $level;
+		$this->channelFilter = $channelFilter;
 	}
 
+	/**
+	 * Check if handling record
+	 *
+	 * @param \Exo\Logger\Record $record
+	 * @return bool
+	 */
 	public function isHandling(\Exo\Logger\Record $record): bool
 	{
+		if($this->channelFilter
+			&& !Map::arrayFilterKeys([$record->channel => null], $this->channelFilter))
+		{
+			return false;
+		}
+
 		return $record->level >= $this->level;
 	}
 }

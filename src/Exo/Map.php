@@ -62,6 +62,40 @@ class Map implements \Countable, \Iterator
 	}
 
 	/**
+	 * Filters keys based on include or exclude filter
+	 *
+	 * @param array $array
+	 * @param array $filter (include: [key => 1, ...] or exclude: [key => 0, ...])
+	 * @return array
+	 */
+	final public static function arrayFilterKeys(array $array, array $filter): array
+	{
+		$isExclude = reset($filter) == 0;
+
+		foreach($array as $k => $v)
+		{
+			if($isExclude)
+			{
+				if(isset($filter[$k]) && $filter[$k] == 0)
+				{
+					unset($array[$k]);
+				}
+			}
+			else // include
+			{
+				if(isset($filter[$k]) && $filter[$k] == 1)
+				{
+					continue;
+				}
+
+				unset($array[$k]);
+			}
+		}
+
+		return $array;
+	}
+
+	/**
 	 * Clear
 	 *
 	 * @param mixed $key
@@ -93,6 +127,17 @@ class Map implements \Countable, \Iterator
 	final public function current()
 	{
 		return current($this->map);
+	}
+
+	/**
+	 * Filter keys
+	 *
+	 * @param array $filter (include: [key => 1, ...] or exclude: [key => 0, ...])
+	 * @return void
+	 */
+	public function filterKeys(array $filter): void
+	{
+		$this->map = self::arrayFilterKeys($this->map, $filter);
 	}
 
 	/**

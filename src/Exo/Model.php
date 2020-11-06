@@ -15,10 +15,12 @@ namespace Exo;
  * Model
  *
  * @author Shay Anderson
- * #docs
  */
 abstract class Model
 {
+	/**
+	 * Entity class name
+	 */
 	const ENTITY = null;
 
 	/**
@@ -49,13 +51,16 @@ abstract class Model
 	 * Array of entities factory
 	 *
 	 * @param array $data
+	 * @param array $filter
+	 * @param bool $voidable
 	 * @return array (of \Exo\Entity)
 	 */
-	final public function &entityArray(array $data, array $filter = null): array
+	final public function &entityArray(array $data, array $filter = null,
+		bool $voidable = false): array
 	{
 		foreach($data as $k => $v)
 		{
-			$data[$k] = $this->entity($v)->toArray($filter);
+			$data[$k] = $this->entity($v)->toArray($filter, $voidable);
 		}
 
 		return $data;

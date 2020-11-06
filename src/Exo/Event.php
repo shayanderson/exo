@@ -15,20 +15,26 @@ namespace Exo;
  * Event trait
  *
  * @author Shay Anderson
- * #docs
  */
 trait Event
 {
-	public static function emitEvent(string $id, ...$args)
+	/**
+	 * Emit an event
+	 *
+	 * @param string $name
+	 * @param array $args
+	 * @return void
+	 */
+	public static function emitEvent(string $name, array $args = null): void
 	{
-		Factory::debug(__METHOD__, ['id' => $id, $args]);
-		$events = &self::getEvents();
+		System::debug(__METHOD__, ['name' => $name, $args]);
+		$events = &self::events();
 
-		if(isset($events[$id]))
+		if(isset($events[$name]))
 		{
-			foreach($events[$id] as $cb)
+			foreach($events[$name] as $cb)
 			{
-				if($cb(...$args) === true) // interrupt
+				if($cb($args) === true) // interrupt
 				{
 					return;
 				}
@@ -36,12 +42,24 @@ trait Event
 		}
 	}
 
-	abstract protected static function &getEvents(): array;
+	/**
+	 * Events getter
+	 *
+	 * @return array
+	 */
+	abstract protected static function &events(): array;
 
-	public static function onEvent(string $id, callable $callback)
+	/**
+	 * Bind event callable
+	 *
+	 * @param string $name
+	 * @param callable $callback
+	 * @return void
+	 */
+	public static function onEvent(string $name, callable $callback): void
 	{
-		Factory::debug(__METHOD__, ['id' => $id]);
-		$events = &self::getEvents();
-		$events[$id][] = $callback;
+		System::debug(__METHOD__, ['name' => $name]);
+		$events = &self::events();
+		$events[$name][] = $callback;
 	}
 }

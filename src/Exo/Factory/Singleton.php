@@ -12,10 +12,9 @@ declare(strict_types=1);
 namespace Exo\Factory;
 
 /**
- * Singleton
+ * Singleton factory
  *
  * @author Shay Anderson
- * #docs
  */
 abstract class Singleton
 {
@@ -39,10 +38,10 @@ abstract class Singleton
 	 *
 	 * @return \Exo\Factory\Singleton
 	 */
-	public static function getInstance(): Singleton
+	final public static function getInstance(): Singleton
 	{
 		$class = static::class;
-		$instances = &static::getInstances();
+		$instances = &static::instances();
 
 		if(!isset($instances[$class]))
 		{
@@ -53,9 +52,13 @@ abstract class Singleton
 	}
 
 	/**
-	 * Instances getter
+	 * Instances getter (overridable)
 	 *
 	 * @return array
 	 */
-	abstract protected static function &getInstances(): array;
+	protected static function &instances(): array
+	{
+		static $instances = [];
+		return $instances;
+	}
 }

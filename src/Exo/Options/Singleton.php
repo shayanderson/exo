@@ -15,7 +15,6 @@ namespace Exo\Options;
  * Options singleton
  *
  * @author Shay Anderson
- * #docs
  *
  * @method get(string $key)
  * @method bool has(string $key)
@@ -34,42 +33,77 @@ namespace Exo\Options;
 abstract class Singleton extends \Exo\Factory\Singleton
 {
 	/**
+	 * Options
+	 *
 	 * @var \Exo\Options
 	 */
 	private $options;
 
 	/**
-	 * Protected
+	 * Init
 	 */
-	protected function __construct()
+	final protected function __construct()
 	{
 		$this->options = new \Exo\Options;
 		$this->__init();
 	}
 
+	/**
+	 * Init subclass
+	 */
 	abstract protected function __init();
 
+	/**
+	 * Call methods
+	 *
+	 * @param string $name
+	 * @param array $args
+	 * @return mixed
+	 */
 	public function __call(string $name, array $args)
 	{
 		return $this->getOptionsObject()->{$name}(...$args);
 	}
 
+	/**
+	 * Call static methods
+	 *
+	 * @param string $name
+	 * @param array $args
+	 * @return mixed
+	 */
 	public static function __callStatic(string $name, array $args)
 	{
 		return static::getInstance()->getOptionsObject()->{$name}(...$args);
 	}
 
-	protected static function &getInstances(): array
-	{
-		static $instances = [];
-		return $instances;
-	}
-
+	/**
+	 * Options object getter
+	 *
+	 * @return \Exo\Options
+	 */
 	public function getOptionsObject(): \Exo\Options
 	{
 		return $this->options;
 	}
 
+	/**
+	 * Instances getter
+	 *
+	 * @staticvar array $instances
+	 * @return array
+	 */
+	protected static function &instances(): array
+	{
+		static $instances = [];
+		return $instances;
+	}
+
+	/**
+	 * Options object getter
+	 *
+	 * @return \Exo\Options
+	 */
 	public static function object(): \Exo\Options
 	{
 		return static::getInstance()->getOptionsObject();

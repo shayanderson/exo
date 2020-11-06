@@ -14,27 +14,26 @@ namespace Exo\Factory;
 use Exo\Exception;
 
 /**
- * Annotation
+ * Annotation factory
  *
  * @author Shay Anderson
- * #docs
  */
 abstract class Annotation extends Singleton
 {
-	public function __get(string $name)
+	/**
+	 * Getter
+	 *
+	 * @param string $name
+	 * @return \Exo\Factory\classes
+	 * @throws \Exo\Exception (on class not found)
+	 */
+	final public function __get(string $name)
 	{
-		$classes = &static::getClasses();
+		$classes = &static::classes();
 
 		if(!$classes)
 		{
-			// parse class annotations
-			preg_match_all('/@property\s([^\s]+)\s\$([\w]+)/', // match '@property [class] $[name]'
-				(new \ReflectionClass(static::class))->getDocComment(), $m);
-
-			foreach($m[1] as $k => $v)
-			{
-				$classes[$m[2][$k] ?? null] = $v;
-			}
+			$classes = &self::getClassesFromAnnotations();
 		}
 
 		if(!isset($classes[$name]))
@@ -44,7 +43,7 @@ abstract class Annotation extends Singleton
 		}
 
 		// singleton
-		if((new \ReflectionClass($classes[$name]))->isSubclassOf('\Exo\Factory\Singleton'))
+		if((new \ReflectionClass($classes[$name]))->isSubclassOf(\Exo\Factory\Singleton::class))
 		{
 			return ($classes[$name])::getInstance();
 		}
@@ -53,9 +52,35 @@ abstract class Annotation extends Singleton
 	}
 
 	/**
-	 * Classes getter
+	 * Classes from annotations getter
+	 *
+	 * @staticvar array $classes
+	 * @return array
+	 */
+	final protected static function &getClassesFromAnnotations(): array
+	{
+		$classes = [];
+
+		// parse class annotations
+		preg_match_all('/@property\s([^\s]+)\s\$([\w]+)/', // match '@property [class] $[name]'
+			(new \ReflectionClass(static::class))->getDocComment(), $m);
+
+		foreach($m[1] as $k => $v)
+		{
+			$classes[$m[2][$k] ?? null] = $v;
+		}
+
+		return $classes;
+	}
+
+	/**
+	 * Classes getter (overridable)
 	 *
 	 * @return array
 	 */
-	abstract protected static function &getClasses(): array;
+	protected static function &classes(): array
+	{
+		static $classes = [];
+		return $classes;
+	}
 }

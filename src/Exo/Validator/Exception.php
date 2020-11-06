@@ -15,6 +15,5 @@ namespace Exo\Validator;
  * Validator exception
  *
  * @author Shay Anderson
- * #docs
  */
 class Exception extends \Exo\Exception {}
