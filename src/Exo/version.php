@@ -11,4 +11,4 @@
 /**
  * Exo version
  */
-const EXO_VERSION = '0.0.87';
+const EXO_VERSION = '0.0.88';
