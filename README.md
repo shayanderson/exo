@@ -741,7 +741,7 @@ class MyClass
 - `debug(?string $message, array $context): \Exo\Logger` - debug log record
 - `error(?string $message, array $context): \Exo\Logger` - error log record
 - `static globalContext(array $context)` - add context to global context
-    - Local context will overwrite global context
+	- Local context will overwrite global context
 - `static handler(\Exo\Logger\Handler $handler)` - add log handler
 - `info(?string $message, array $context): \Exo\Logger` - info log record
 - `warning(?string $message, array $context): \Exo\Logger` - warning log record
@@ -1050,6 +1050,11 @@ A custom exception class can be used instead of the default `Exo\Validator\Excep
 class MyAssertionException extends \Exception {}
 // set as exception class for failed assertions:
 \Exo\Validator\AbstractType::setAssertionExceptionClass(MyAssertionException::class);
+```
+#### Display Value in Assertion Exception Message
+The value that fails validation can be displayed in the assertion exception message for debugging purposes:
+```php
+\Exo\Validator\AbstractType::setAssertionExceptionDisplayValue(true);
 ```
 ### Types & Rules
 - **Array** - must be a non-empty array

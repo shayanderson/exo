@@ -28,6 +28,13 @@ abstract class AbstractType
 	private static $assertionExceptionClass = Exception::class;
 
 	/**
+	 * Show value in exception message
+	 *
+	 * @var bool
+	 */
+	private static $assertionExceptionDisplayValue = false;
+
+	/**
 	 * Base message
 	 *
 	 * @var string
@@ -132,23 +139,26 @@ abstract class AbstractType
 			}
 
 			$valString = null;
-			if($value === null)
+			if(self::$assertionExceptionDisplayValue)
 			{
-				$valString = '[null]';
-			}
-			else if(is_bool($value))
-			{
-				$valString = $value === true ? '[true]' : '[false]';
-			}
-			else if(is_scalar($value))
-			{
-				if(is_string($value))
+				if($value === null)
 				{
-					$valString = '"' . $value . '"';
+					$valString = '[null]';
 				}
-				else
+				else if(is_bool($value))
 				{
-					$valString = $value;
+					$valString = $value === true ? '[true]' : '[false]';
+				}
+				else if(is_scalar($value))
+				{
+					if(is_string($value))
+					{
+						$valString = '"' . $value . '"';
+					}
+					else
+					{
+						$valString = $value;
+					}
 				}
 			}
 
@@ -246,6 +256,17 @@ abstract class AbstractType
 	final public static function setAssertionExceptionClass(string $class): void
 	{
 		self::$assertionExceptionClass = $class;
+	}
+
+	/**
+	 * Display value in assertion exception message
+	 *
+	 * @param bool $display
+	 * @return void
+	 */
+	final public static function setAssertionExceptionDisplayValue(bool $display): void
+	{
+		self::$assertionExceptionDisplayValue = $display;
 	}
 
 	/**
