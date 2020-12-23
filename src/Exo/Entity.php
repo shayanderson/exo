@@ -106,6 +106,23 @@ abstract class Entity
 	}
 
 	/**
+	 * Single property value assertion
+	 *
+	 * @param mixed $name
+	 * @param mixed $value
+	 * @return void
+	 */
+	final public function assert($name, $value): void
+	{
+		$validator = &$this->getProp($name)->getValidator();
+
+		if($validator)
+		{
+			(clone $validator->typeObject())->assert($value);
+		}
+	}
+
+	/**
 	 * Deregister a property
 	 *
 	 * @param mixed $name
@@ -192,7 +209,7 @@ abstract class Entity
 	 * @return \Exo\Entity\Property
 	 * @throws \Exo\Exception (on class property exists)
 	 */
-	final public function &property($name, $default = null): Property
+	final protected function &property($name, $default = null): Property
 	{
 		$this->__init();
 
@@ -262,6 +279,25 @@ abstract class Entity
 		}
 
 		return $map;
+	}
+
+	/**
+	 * Single property value validation
+	 *
+	 * @param mixed $name
+	 * @param mixed $value
+	 * @return bool
+	 */
+	final public function validate($name, $value): bool
+	{
+		$validator = &$this->getProp($name)->getValidator();
+
+		if($validator)
+		{
+			return (clone $validator->typeObject())->validate($value);
+		}
+
+		return true;
 	}
 
 	/**

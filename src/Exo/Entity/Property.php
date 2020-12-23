@@ -214,6 +214,16 @@ class Property
 	}
 
 	/**
+	 * Validator getter
+	 *
+	 * @return Validator|null
+	 */
+	public function &getValidator(): ?\Exo\Validator
+	{
+		return $this->validator;
+	}
+
+	/**
 	 * Value getter
 	 *
 	 * @return mixed

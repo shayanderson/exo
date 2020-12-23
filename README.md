@@ -334,11 +334,18 @@ print_r($entity->toArray(['name' => 1]));
 print_r($entity->toArray(['name' => 0, 'title' => 0]));
 // Array ( [id] => 5 )
 
-// validation example
+// assertion/validation example
 $entity->id = null;
 print_r($entity->toArray());
-// throws exception:
-// Assertion failed: Assertion failed: "UserEntity.id" must be a number (value: [null])
+// throws exception: Assertion failed: "UserEntity.id" must be a number (value: [null])
+
+// single property assertion example
+$entity->assert('id', null);
+// throws exception: Assertion failed: "UserEntity.id" must be a number (value: [null])
+
+// single property validation example
+var_dump($entity->validate('id', null)); // false
+var_dump($entity->validate('id', 'Shay')); // true
 ```
 The `apply()` method can be used to apply a callback to a property value, example:
 ```php
@@ -403,16 +410,18 @@ $entity = new UserEntity(['id' => 5]);
 print_r($entity->toArray([], /* allow voidables */ true)); // no assert exception
 ```
 ### Methods
-- `deregisterProperty(string $name)` - deregister a property
+- `assert($name, $value)` - single prop value assertion
+- `deregisterProperty($name)` - deregister a property
 - `fromArray(array $data)` - properties values setter
-- `hasProperty(string $name): bool` - check if property exists
+- `hasProperty($name): bool` - check if property exists
 - `hasVoidableProperty(): bool` - check if any property is voidable
 - `isVoidable(): bool` - check if globally voidable
-- `property(string $name, $default = null): \Exo\Entity\Property` - register property
+- `property($name, $default = null): \Exo\Entity\Property` - register property
 - `toArray(array $filter = null, bool $voidable = false): array` - to array method
 	- `$filter` - allows filtering fields
 		- remove specific fields: `[field => 0, ...]`
 		- include only specific fields: `[field => 1, ...]`
+- `validate($name, $value)` - single prop value validation
 - `voidable()` - set all properties as voidable (unless properties use `notVoidable()` method)
 ### Property Methods
 - `apply(callable $callback): \Exo\Entity\Property` - apply callback to value

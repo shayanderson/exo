@@ -117,6 +117,14 @@ abstract class AbstractType
 	}
 
 	/**
+	 * Clone method
+	 */
+	public function __clone()
+	{
+		$this->messages = []; // reset previous validation
+	}
+
+	/**
 	 * Assert
 	 *
 	 * @param mixed $value
