@@ -394,7 +394,7 @@ $this->property('createdAt')
 	->validator() // validator() must be called after all other property() methods
 	->string();
 // ...
-$entity = new UserEntity(['name' => 'shay']);
+$entity = new UserEntity(['name' => 'Shay']);
 print_r($entity->toArray([], /* allow voidables */ true)); // no assert exception for "createdAt"
 // Array ( [name] => Shay )
 print_r($entity->toArray()); // voidable not allowed, exception thrown
