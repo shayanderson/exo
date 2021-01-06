@@ -16,77 +16,171 @@ namespace Exo;
  *
  * @author Shay Anderson
  */
-class Options
+abstract class Options extends \Exo\Factory\Singleton
 {
 	/**
-	 * Map
+	 * Options map
 	 *
-	 * @var \Exo\Map
+	 * @var array
 	 */
 	private $map;
 
 	/**
-	 * Validators
+	 * Option objects
 	 *
-	 * @var array (of \Exo\Validator)
+	 * @var array
 	 */
-	private $validators = [];
+	private $mapOption = [];
 
 	/**
-	 * Init
+	 * Convert value type
 	 *
-	 * @param array $options
+	 * @param string $type
+	 * @param mixed $value
+	 * @return void
+	 * @throws Exception (invalid type)
 	 */
-	public function __construct(array $options = null)
+	private static function convertType(string $type, &$value): void
 	{
-		$this->__initMap();
-
-		if($options !== null)
+		switch($type)
 		{
-			$this->set($options);
+			case 'auto':
+				if(is_string($value))
+				{
+					if($value === 'true') // auto convert bool
+					{
+						$value = true;
+					}
+					else if($value === 'false') // auto convert bool
+					{
+						$value = false;
+					}
+					else if($value === 'null') // auto convert null
+					{
+						$value = null;
+					}
+					else if(ctype_digit($value)) // auto convert int
+					{
+						$value = (int)$value;
+					}
+					else if(is_numeric($value)) // auto convert float
+					{
+						$value = (float)$value;
+					}
+				}
+				break;
+
+			case 'bool':
+			case 'boolean':
+				if(!is_bool($value))
+				{
+					if($value === 'true')
+					{
+						$value = true;
+					}
+					else if($value === 'false')
+					{
+						$value = false;
+					}
+					else
+					{
+						$value = (bool)$value;
+					}
+				}
+				break;
+
+			case 'int':
+			case 'integer':
+				$value = (int)$value;
+				break;
+
+			case 'none':
+				// do nothing
+				break;
+
+			case 'number':
+				if(ctype_digit($value))
+				{
+					$value = (int)$value;
+				}
+				else if(is_numeric($value))
+				{
+					$value = (float)$value;
+				}
+				else
+				{
+					$value = (int)$value;
+				}
+				break;
+
+			case 'string':
+				$value = (string)$value;
+				break;
+
+			default:
+				throw new Exception("Unknown type \"{$type}\" when trying to convert type");
+				break;
 		}
 	}
 
 	/**
-	 * Init map
+	 * Set key values from array
 	 *
+	 * @param array $array
 	 * @return void
 	 */
-	private function __initMap(): void
+	final public function fromArray(array $array): void
 	{
-		if(!$this->map) // init
+		foreach($array as $k => $v)
 		{
-			$this->map = new Map;
+			$this->set($k, $v);
 		}
 	}
 
 	/**
-	 * Option value getter
+	 * Value getter
 	 *
 	 * @param string $key
 	 * @return mixed
-	 * @throws Exception (key does not exist)
 	 */
 	final public function get(string $key)
 	{
-		$this->__initMap();
-
-		if(!$this->map->has($key))
+		if($this->has($key))
 		{
-			throw new Exception('Option "' . $key . '" does not exist');
+			return $this->map[$key];
 		}
 
-		return $this->map->get($key);
+		if(isset($this->mapOption[$key]))
+		{
+			return $this->mapOption[$key]->toArray()['default'];
+		}
+
+		return null;
 	}
 
 	/**
-	 * Validators getter
+	 * Keys getter
 	 *
+	 * @staticvar array $keys
 	 * @return array
 	 */
-	final public function getValidators(): array
+	final protected function getKeys(): array
 	{
-		return $this->validators;
+		static $keys;
+
+		if($keys === null)
+		{
+			$keys = [];
+			foreach((new \ReflectionClass($this))->getConstants() as $const => $k)
+			{
+				if(substr($const, 0, 4) === 'KEY_')
+				{
+					$keys[$const] = $k;
+				}
+			}
+		}
+
+		return $keys;
 	}
 
 	/**
@@ -97,129 +191,110 @@ class Options
 	 */
 	final public function has(string $key): bool
 	{
-		$this->__initMap();
-		return $this->map->has($key);
+		$this->verifyKey($key);
+		$this->mapInit();
+		return array_key_exists($key, $this->map);
 	}
 
 	/**
-	 * Merge options with validators
+	 * Init map
 	 *
-	 * @param \Exo\Options $options (overrides internal options)
+	 * @param bool $forceRead
 	 * @return void
 	 */
-	final public function merge(\Exo\Options $options): void
+	private function mapInit(bool $forceRead = false): void
 	{
-		$this->__initMap();
-		$this->map->merge($options->toArray());
-		$this->validators = array_merge($this->validators, $options->getValidators());
+		if($this->map === null || $forceRead)
+		{
+			$this->map = []; // reset
+			$this->read($this->map);
+		}
 	}
 
 	/**
-	 * Set option validator
+	 * Option object setter
+	 *
+	 * @return \Exo\Options\Option
+	 */
+	final protected function &option(string $key): \Exo\Options\Option
+	{
+		$this->verifyKey($key);
+
+		if(isset($this->mapOption[$key]))
+		{
+			throw new Exception('Key already exist as option (' . __METHOD__ . ')');
+		}
+
+		$this->mapOption[$key] = new \Exo\Options\Option($key);
+		return $this->mapOption[$key];
+	}
+
+	/**
+	 * Read all
+	 *
+	 * @return void
+	 */
+	abstract protected function read(array &$map): void;
+
+	/**
+	 * Value setter
 	 *
 	 * @param string $key
-	 * @return \Exo\Validator
-	 * @throws Exception (option already exists)
-	 */
-	final public function &option(string $key, $defaultValue = null): \Exo\Validator
-	{
-		$this->__initMap();
-		if($this->map->has($key))
-		{
-			throw new Exception('Option "' . $key . '" already exists before using '
-				. __METHOD__ . '()');
-		}
-
-		if(func_num_args() === 2) // default value setter
-		{
-			$this->set($key, $defaultValue);
-		}
-
-		if(isset($this->validators[$key]))
-		{
-			return $this->validators[$key];
-		}
-
-		$this->validators[$key] = new Validator($key);
-
-		return $this->validators[$key];
-	}
-
-	/**
-	 * Set option keys as required
-	 *
-	 * @param array $keys
-	 * @return void
-	 */
-	final public function required(array $keys): void
-	{
-		foreach($keys as $k)
-		{
-			$this->option($k)->required();
-		}
-	}
-
-	/**
-	 * Single or multiple options with values setter
-	 *
-	 * @param string|array $key (array ex: [key => value, ...])
 	 * @param mixed $value
 	 * @return void
-	 * @throws Exception (validation fail)
 	 */
-	final public function set($key, $value = null): void
+	final public function set(string $key, $value): void
 	{
-		$this->__initMap();
+		$this->verifyKey($key);
 
-		if(is_array($key))
+		// convert type?
+		$type = isset($this->mapOption[$key])
+			? $this->mapOption[$key]->toArray()['type']
+			: 'auto'; // auto by default
+		self::convertType($type, $value);
+
+		if(isset($this->mapOption[$key])
+			&& ( $validator = $this->mapOption[$key]->toArray()['validator'] ))
 		{
-			foreach($key as $k => $v)
-			{
-				$this->set($k, $v);
-			}
-			return;
+			/* @var $validator \Exo\Validator */
+			$validator->typeObject()->assert($value);
 		}
 
-		if(!is_string($key))
+		if($this->write($key, $value))
 		{
-			throw new Exception('Invalid key "' . $key . '" (must be string)');
+			$this->mapInit(true); // force read
 		}
-
-		$this->validatorAssert($key, $value);
-		$this->map->set($key, $value);
 	}
 
 	/**
-	 * Options as array getter
+	 * Get all as array
 	 *
 	 * @return array
-	 * @throws Exception (validation fail)
 	 */
 	final public function toArray(): array
 	{
-		$this->__initMap();
-
-		foreach($this->map as $k => $v)
-		{
-			$this->validatorAssert($k, $v);
-		}
-
-		return $this->map->toArray();
+		return $this->map;
 	}
 
 	/**
-	 * Validator assert
+	 * Verify key
 	 *
 	 * @param string $key
-	 * @param mixed $value
 	 * @return void
+	 * @throws Exception (invalid key)
 	 */
-	final private function validatorAssert(string $key, $value): void
+	final private function verifyKey(string $key): void
 	{
-		if(isset($this->validators[$key])
-			&& ( $validatorType = &$this->validators[$key]->typeObject() ) !== null)
+		if(!in_array($key, $this->getKeys()))
 		{
-			$validatorType->assert($value);
+			throw new Exception("Invalid Options key \"{$key}\"");
 		}
 	}
+
+	/**
+	 * Write key/value
+	 *
+	 * @return void
+	 */
+	abstract protected function write(string $key, $value): bool;
 }

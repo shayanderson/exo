@@ -11,7 +11,6 @@
 - [Map](#exomap)
 - [Model](#exomodel)
 - [Options](#exooptions)
-	- [Singleton](#exooptionssingleton)
 - [Share](#exoshare)
 - [Validator](#exovalidator)
 
@@ -815,128 +814,83 @@ class UserModel extends \Exo\Model
 Options is a helper class for handling options with validation.
 ```php
 namespace Canvas;
+class RectangleOptions extends \Exo\Options
+{
+	// valid option keys must be constants that begin with "KEY_"
+	const KEY_HEIGHT = 'height';
+	const KEY_WIDTH = 'width';
+
+	protected function __construct()
+	{
+		// all below is optional
+		$this->option(self::KEY_HEIGHT)
+			// set default value
+			->default(300)
+			// set convert type (default is "auto")
+			->type('int')
+			// validation is optional
+			->validator()->number();
+		$this->option(self::KEY_WIDTH)
+			->default(600);
+	}
+	// required, for reading all
+	protected function read(array &$map): void
+	{
+		$map = dbSelectAll('options'); // example: read all from database table
+	}
+	// required, for writing
+	protected function write(string $key, $value): bool
+	{
+		// example: write to database table
+		if($this->has($key))
+		{
+			// update
+			dbUpdate('options', [$key => $value]);
+		}
+		else
+		{
+			// insert
+			dbInsert('options', $key, $value);
+		}
+		return true;
+	}
+}
 class Rectangle
 {
-	private $options;
+	private $h;
+	private $w;
 
-	public function __construct(array $options)
+	public function __construct()
 	{
-		$this->options = new \Exo\Options;
-
-		// register options (before setting)
-		$this->options->option('height')
-			->number(); // must be number (+required)
-		$this->options->option('width')
-			->number();
-		$this->options->option('invert', false) // set default value
-			->boolean();
-
-		// can also set default values using:
-		// $this->options->set('invert', false;
-
-		// set options (after registering)
-		$this->options->set($options);
-	}
-
-	public function getOptions(): array
-	{
-		return $this->options->toArray();
-	}
-
-	// getters example
-	public function render()
-	{
-		echo $this->draw(
-			$this->options->get('height'),
-			$this->options->get('width'),
-			$this->options->get('invert')
-		);
+		$options = RectangleOptions::getInstance(); // singleton
+		$this->h = $options->get($options::KEY_HEIGHT);
+		$this->w = $options->get($options::KEY_WIDTH);
 	}
 }
 ```
 Usage example:
 ```php
 use Canvas\Rectangle;
-$rec = new Rectangle([
-	'height' => 300,
-	'width' => 500
-]);
+use Canvas\RectangleOptions;
 
-print_r($rec->getOptions());
-// Array ( [invert] => [height] => 300 [width] => 500 )
+RectangleOptions::getInstance()->set('height', 200);
+RectangleOptions::getInstance()->set('width', 400);
+
+$rec = new Rectangle; // h:200, w:400
+
+print_r(RectangleOptions::getInstance()->toArray());
+// Array ( [height] => 200 [width] => 400 )
 ```
 ### Methods
-- `__construct(array $options)` - *overridable*
-- `get(string $key): mixed` - getter
-- `getValidators(): array` - get all options validator objects
-- `has(string $key): bool` - check if exists
-- `merge(\Exo\Options $options)` - merge options
-- `option(string $key): \Exo\Validator` - register option with validator
-- `required(array $keys)` - set option keys as required
-- `set(array|string $key)` - set option(s)
+- `fromArray(array $array)` - key/value setter from array
+- `get(string $key): mixed` - value getter
+- `has(string $key): bool` - check if key exists
+- `option(string $key): \Exo\Options\Option` - option object setter for additional params
+- `read(array &$map)` - abstract read all
+- `set(string $key, $value)` - value setter
 - `toArray(): array` - get options as array `[key => value, ...]`
+- `write(string $key, $value): bool` - abstract write key/value
 
-
-
-## `Exo\Options\Singleton`
-The singleton options class is a helper class for hanlding options with validation.
-```php
-namespace Canvas;
-class Options extends \Exo\Options\Singleton
-{
-	const HEIGHT = 'maxh';
-	const WIDTH = 'maxw';
-	// required
-	protected function __init(): void
-	{
-		$this->option(self::HEIGHT)
-			->digit();
-		$this->option(self::WIDTH)
-			->digit();
-		// set defaults
-		$this->set([
-			self::HEIGHT => 600,
-			self::WIDTH => 800
-		]);
-	}
-}
-// usage in class example
-class Rectangle
-{
-	// more code
-	public function render()
-	{
-		echo $this->draw(
-			Options::get(Options::HEIGHT),
-			Options::get(Options::WIDTH)
-		);
-	}
-}
-```
-Usage:
-```php
-use Canvas\Options;
-use Canvas\Rectangle;
-// set options
-Options::set(Options::HEIGHT, 300);
-Options::set(Options::WIDTH, 500);
-(new Rectangle)->render();
-```
-### Methods
-- `get(string $key)` - getter
-- `has(string $key): bool` - check if exists
-- `merge(\Exo\Options $options)` - merge options
-- `option(string $key): \Exo\Validator` - register option with validator
-- `required(array $keys)` - set option keys as required
-- `set(array|string $key, $value = null)` - set option(s)
-- `toArray(): array` - get options as array `[key => value, ...]`
-
-### Static Methods
-- `get(string $key)` - getter
-- `has(string $key)` - check if exists
-- `merge(\Exo\Options $options)` - merge options
-- `set(array|string $key, $value = null)` - set option(s)
-- `toArray(): array` - get options as array `[key => value, ...]`
 
 
 ## `Exo\Share`
