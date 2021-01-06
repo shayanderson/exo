@@ -273,7 +273,7 @@ abstract class Options extends \Exo\Factory\Singleton
 	 */
 	final public function toArray(): array
 	{
-		return $this->map;
+		return $this->map ?: [];
 	}
 
 	/**
