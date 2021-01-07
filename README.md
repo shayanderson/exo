@@ -6,7 +6,7 @@
 - [Event](#trait-exoevent)
 - [Exception](#exoexception)
 - [Factory](#exofactory)
-	- [Annotation](#exofactoryannotation), [Mapper](#exofactorymapper), [Singleton](#exofactorysingleton)
+	- [Annotation](#exofactoryannotation), [Dynamic](#exofactorydynamic), [Mapper](#exofactorymapper), [Singleton](#exofactorysingleton)
 - [Logger](#exologger)
 - [Map](#exomap)
 - [Model](#exomodel)
@@ -616,6 +616,42 @@ $user = model()->user->get($userId);
 
 
 
+## `Exo\Factory\Dynamic`
+Dynamic class factory.
+```php
+use Exo\Factory\Dynamic as DynamicFactory;
+// example instantiate object using dynamic name for Factory\User
+$user = (new DynamicFactory('User', 'Factory'))->newInstance($userId);
+$user->doSomething(); // example call
+
+// or instantiate object with array of constructor args
+$user = (new DynamicFactory('User', 'Factory'))->newInstanceArgs([$userId, $sessId]);
+
+// or static methods
+$factory = new DynamicFactory('User', 'Factory');
+($factory->getClass())::doSomething(); // example static call
+
+// or use with Singleton (Exo\Factory\Singleton) subclass
+$factory = new DynamicFactory('User', 'Factory');
+$user = $factory->getInstance(); // same as (singleton)::getInstance()
+// or call static method
+$user = ($factory->getClass())::getInstace();
+```
+If a class doesn't exist an exception (`Exo\Exception`) with be thrown, use try/catch to handle missing classes:
+```php
+$factory = new DynamicFactory('User', 'Factory');
+try
+{
+	$user = $factory->newInstance($userId);
+}
+catch(\Exo\Exception $ex)
+{
+	logSomething('Factory class does not exist "' . $factory->getClass() . '"');
+}
+```
+
+
+
 ## `Exo\Factory\Mapper`
 Mapper is a class loading helper.
 ```php
@@ -775,6 +811,7 @@ Map is a helper class for handling arrays. Map implements `Countable` and `Itera
 	- `$filter` - allows filtering keys
 		- exclude: `[key => 0, ...]`
 		- include: `[key => 1, ...]`
+- `&extract(array $array, $key, $valueKey = null): array` - extract key or key/value from multidimensional array to one dimensional
 
 
 
@@ -822,16 +859,11 @@ class RectangleOptions extends \Exo\Options
 
 	protected function __construct()
 	{
-		// all below is optional
-		$this->option(self::KEY_HEIGHT)
-			// set default value
-			->default(300)
-			// set convert type (default is "auto")
-			->type('int')
+		// all below is optional, set default value to: 300
+		$this->option(self::KEY_HEIGHT, 300)
 			// validation is optional
-			->validator()->number();
-		$this->option(self::KEY_WIDTH)
-			->default(600);
+			->number();
+		$this->option(self::KEY_WIDTH, 600)
 	}
 	// required, for reading all
 	protected function read(array &$map): void
@@ -842,15 +874,16 @@ class RectangleOptions extends \Exo\Options
 	protected function write(string $key, $value): bool
 	{
 		// example: write to database table
+		$data = ['key' => $key, 'value' => $value];
 		if($this->has($key))
 		{
 			// update
-			dbUpdate('options', [$key => $value]);
+			dbUpdate('options', $data);
 		}
 		else
 		{
 			// insert
-			dbInsert('options', $key, $value);
+			dbInsert('options', $data);
 		}
 		return true;
 	}
@@ -882,12 +915,11 @@ print_r(RectangleOptions::getInstance()->toArray());
 // Array ( [height] => 200 [width] => 400 )
 ```
 ### Methods
-- `fromArray(array $array)` - key/value setter from array
 - `get(string $key): mixed` - value getter
 - `has(string $key): bool` - check if key exists
-- `option(string $key): \Exo\Options\Option` - option object setter for additional params
+- `option(string $key, $defaultValue): \Exo\Validator` - optional default value setter and validation
 - `read(array &$map)` - abstract read all
-- `set(string $key, $value)` - value setter
+- `set($key, $value)` - value setter, or use array for keys/values setter
 - `toArray(): array` - get options as array `[key => value, ...]`
 - `write(string $key, $value): bool` - abstract write key/value
 

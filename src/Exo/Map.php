@@ -130,6 +130,41 @@ class Map implements \Countable, \Iterator
 	}
 
 	/**
+	 * Extract keys into one-dimensional array [k1, k2, ...]
+	 *	or map keys and value keys into one-dimensional array [k1 => v1, k2 => v2, ...]
+	 *
+	 * @param array $array
+	 * @param int|string $key
+	 * @param int|string $valueKey
+	 * @return array
+	 */
+	final public static function &extract(array $array, $key, $valueKey = null): array
+	{
+		$r = [];
+
+		foreach($array as $a)
+		{
+			if($valueKey === null) // key only
+			{
+				$r[] = is_object($a) ? $a->{$key} : $a[$key];
+			}
+			else
+			{
+				if(is_object($a))
+				{
+					$r[$a->{$key}] = $a->{$valueKey};
+				}
+				else
+				{
+					$r[$a[$key]] = $a[$valueKey];
+				}
+			}
+		}
+
+		return $r;
+	}
+
+	/**
 	 * Filter keys
 	 *
 	 * @param array $filter (include: [key => 1, ...] or exclude: [key => 0, ...])

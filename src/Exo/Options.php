@@ -19,6 +19,13 @@ namespace Exo;
 abstract class Options extends \Exo\Factory\Singleton
 {
 	/**
+	 * Default values
+	 *
+	 * @var array
+	 */
+	private $defaultValues = [];
+
+	/**
 	 * Options map
 	 *
 	 * @var array
@@ -26,116 +33,11 @@ abstract class Options extends \Exo\Factory\Singleton
 	private $map;
 
 	/**
-	 * Option objects
+	 * Validators
 	 *
-	 * @var array
+	 * @var array (of \Exo\Validators)
 	 */
-	private $mapOption = [];
-
-	/**
-	 * Convert value type
-	 *
-	 * @param string $type
-	 * @param mixed $value
-	 * @return void
-	 * @throws Exception (invalid type)
-	 */
-	private static function convertType(string $type, &$value): void
-	{
-		switch($type)
-		{
-			case 'auto':
-				if(is_string($value))
-				{
-					if($value === 'true') // auto convert bool
-					{
-						$value = true;
-					}
-					else if($value === 'false') // auto convert bool
-					{
-						$value = false;
-					}
-					else if($value === 'null') // auto convert null
-					{
-						$value = null;
-					}
-					else if(ctype_digit($value)) // auto convert int
-					{
-						$value = (int)$value;
-					}
-					else if(is_numeric($value)) // auto convert float
-					{
-						$value = (float)$value;
-					}
-				}
-				break;
-
-			case 'bool':
-			case 'boolean':
-				if(!is_bool($value))
-				{
-					if($value === 'true')
-					{
-						$value = true;
-					}
-					else if($value === 'false')
-					{
-						$value = false;
-					}
-					else
-					{
-						$value = (bool)$value;
-					}
-				}
-				break;
-
-			case 'int':
-			case 'integer':
-				$value = (int)$value;
-				break;
-
-			case 'none':
-				// do nothing
-				break;
-
-			case 'number':
-				if(ctype_digit($value))
-				{
-					$value = (int)$value;
-				}
-				else if(is_numeric($value))
-				{
-					$value = (float)$value;
-				}
-				else
-				{
-					$value = (int)$value;
-				}
-				break;
-
-			case 'string':
-				$value = (string)$value;
-				break;
-
-			default:
-				throw new Exception("Unknown type \"{$type}\" when trying to convert type");
-				break;
-		}
-	}
-
-	/**
-	 * Set key values from array
-	 *
-	 * @param array $array
-	 * @return void
-	 */
-	final public function fromArray(array $array): void
-	{
-		foreach($array as $k => $v)
-		{
-			$this->set($k, $v);
-		}
-	}
+	private $validators = [];
 
 	/**
 	 * Value getter
@@ -150,9 +52,9 @@ abstract class Options extends \Exo\Factory\Singleton
 			return $this->map[$key];
 		}
 
-		if(isset($this->mapOption[$key]))
+		if(isset($this->defaultValues[$key]))
 		{
-			return $this->mapOption[$key]->toArray()['default'];
+			return $this->defaultValues[$key];
 		}
 
 		return null;
@@ -164,7 +66,7 @@ abstract class Options extends \Exo\Factory\Singleton
 	 * @staticvar array $keys
 	 * @return array
 	 */
-	final protected function getKeys(): array
+	final public function getKeys(): array
 	{
 		static $keys;
 
@@ -175,6 +77,11 @@ abstract class Options extends \Exo\Factory\Singleton
 			{
 				if(substr($const, 0, 4) === 'KEY_')
 				{
+					if(in_array($k, $keys))
+					{
+						throw new Exception("Options key \"{$k}\" already exists");
+					}
+
 					$keys[$const] = $k;
 				}
 			}
@@ -214,24 +121,33 @@ abstract class Options extends \Exo\Factory\Singleton
 	/**
 	 * Option object setter
 	 *
-	 * @return \Exo\Options\Option
+	 * @param string $key
+	 * @param mixed $defaultValue
+	 * @return \Exo\Validator
+	 * @throws Exception
 	 */
-	final protected function &option(string $key): \Exo\Options\Option
+	final protected function &option(string $key, $defaultValue = null): \Exo\Validator
 	{
 		$this->verifyKey($key);
 
-		if(isset($this->mapOption[$key]))
+		if(isset($this->validators[$key]))
 		{
-			throw new Exception('Key already exist as option (' . __METHOD__ . ')');
+			throw new Exception('Key already exist as option');
 		}
 
-		$this->mapOption[$key] = new \Exo\Options\Option($key);
-		return $this->mapOption[$key];
+		if(func_num_args() === 2) // default value setter
+		{
+			$this->defaultValues[$key] = $defaultValue;
+		}
+
+		$this->validators[$key] = new Validator($key);
+		return $this->validators[$key];
 	}
 
 	/**
 	 * Read all
 	 *
+	 * @param array $map
 	 * @return void
 	 */
 	abstract protected function read(array &$map): void;
@@ -239,25 +155,27 @@ abstract class Options extends \Exo\Factory\Singleton
 	/**
 	 * Value setter
 	 *
-	 * @param string $key
+	 * @param string|array $key (array: [key => value, ...])
 	 * @param mixed $value
 	 * @return void
 	 */
-	final public function set(string $key, $value): void
+	final public function set($key, $value = null): void
 	{
+		if(is_array($key))
+		{
+			foreach($key as $k => $v)
+			{
+				$this->set($k, $v);
+			}
+			return;
+		}
+
 		$this->verifyKey($key);
 
-		// convert type?
-		$type = isset($this->mapOption[$key])
-			? $this->mapOption[$key]->toArray()['type']
-			: 'auto'; // auto by default
-		self::convertType($type, $value);
-
-		if(isset($this->mapOption[$key])
-			&& ( $validator = $this->mapOption[$key]->toArray()['validator'] ))
+		if(isset($this->validators[$key])
+			&& ( $validator = &$this->validators[$key]->typeObject() ) !== null) // validation
 		{
-			/* @var $validator \Exo\Validator */
-			$validator->typeObject()->assert($value);
+			$validator->assert($value);
 		}
 
 		if($this->write($key, $value))
@@ -273,7 +191,15 @@ abstract class Options extends \Exo\Factory\Singleton
 	 */
 	final public function toArray(): array
 	{
-		return $this->map ?: [];
+		$this->mapInit();
+
+		if(is_array($this->map))
+		{
+			// merge map and default values
+			return $this->map + $this->defaultValues;
+		}
+
+		return $this->defaultValues;
 	}
 
 	/**
@@ -294,6 +220,8 @@ abstract class Options extends \Exo\Factory\Singleton
 	/**
 	 * Write key/value
 	 *
+	 * @param string $key
+	 * @param mixed $value
 	 * @return void
 	 */
 	abstract protected function write(string $key, $value): bool;
