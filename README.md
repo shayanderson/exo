@@ -633,7 +633,7 @@ $factory = new DynamicFactory('User', 'Factory');
 
 // or use with Singleton (Exo\Factory\Singleton) subclass
 $factory = new DynamicFactory('User', 'Factory');
-$user = $factory->getInstance(); // same as (singleton)::getInstance()
+$user = $factory->getInstanceSingleton(); // same as (singleton)::getInstance()
 // or call static method
 $user = ($factory->getClass())::getInstace();
 ```

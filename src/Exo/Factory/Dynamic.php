@@ -71,7 +71,7 @@ class Dynamic
 	 *
 	 * @return mixed
 	 */
-	public function getInstance()
+	public function getInstanceSingleton()
 	{
 		return ($this->getClass())::getInstance();
 	}
