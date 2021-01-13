@@ -198,12 +198,19 @@ print_r([
 ```
 Session in request example:
 ```php
-app()->session()->set('user.id', 5);
+app()->session()->set('user.id', 5); // creates session data: [user => [id => 5]]
 // ...
 if(app()->session()->has('user.id'))
 {
 	$userId = app()->session()->get('user.id');
 }
+```
+Session flash can be used to store short-term data where the data is available from when set through the following request, example:
+```php
+app()->session()->flash()->set('loginError', 'Invalid username');
+// redirect, then output message
+echo app()->session()->flash()->get('loginError');
+// message is no longer available on next request
 ```
 Cookie in request example:
 ```php

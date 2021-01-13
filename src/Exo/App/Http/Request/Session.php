@@ -35,6 +35,9 @@ class Session extends \Exo\System\Singleton
 	 */
 	private $state = false;
 
+	/**
+	 * Init
+	 */
 	protected function __construct()
 	{
 		$this->start();
@@ -87,6 +90,16 @@ class Session extends \Exo\System\Singleton
 		System::debug(__METHOD__, [
 			'session' => $this->state
 		]);
+	}
+
+	/**
+	 * Flash object getter
+	 *
+	 * @return \Exo\App\Http\Request\SessionFlash
+	 */
+	public function flash(): SessionFlash
+	{
+		return SessionFlash::getInstance();
 	}
 
 	/**
