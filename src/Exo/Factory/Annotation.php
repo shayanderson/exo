@@ -57,7 +57,7 @@ abstract class Annotation extends Singleton
 	 * @staticvar array $classes
 	 * @return array
 	 */
-	final protected static function &getClassesFromAnnotations(): array
+	final public static function &getClassesFromAnnotations(): array
 	{
 		$classes = [];
 
