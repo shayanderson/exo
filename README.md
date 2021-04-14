@@ -156,6 +156,7 @@ PHP environment variables from `$_ENV` (prefixed with `ENV.`) and `$_SERVER` (pr
 $httpHost = env('SERVER.HTTP_HOST');
 ```
 ### Methods
+- `fromArray(array $array)` - from array setter
 - `get(string $key, $defaultValue = null, bool $invalidKeyException = false)` - getter
 - `has(string $key): bool` - check if key exists
 - `load(string $path)` - load file

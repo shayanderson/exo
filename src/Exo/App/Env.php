@@ -35,6 +35,7 @@ class Env extends \Exo\System\Singleton
 	{
 		self::$map = new Map;
 
+		#next add option to not include $_ENV + $SERVER by default
 		foreach($_ENV as $k => $v)
 		{
 			self::$map->set('ENV.' . $k, filter_var($v, FILTER_SANITIZE_STRING));
@@ -44,6 +45,17 @@ class Env extends \Exo\System\Singleton
 		{
 			self::$map->set('SERVER.' . $k, filter_var($v, FILTER_SANITIZE_STRING));
 		}
+	}
+
+	/**
+	 * From array setter
+	 *
+	 * @param array $array
+	 * @return void
+	 */
+	public function fromArray(array $array): void
+	{
+		self::$map->merge($array);
 	}
 
 	/**
