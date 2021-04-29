@@ -139,7 +139,7 @@ abstract class AbstractInput
 	/**
 	 * Value getter with sanitize filter for string
 	 *
-	 * @return type
+	 * @return string
 	 */
 	public function string()
 	{
@@ -149,7 +149,7 @@ abstract class AbstractInput
 	/**
 	 * Value getter with sanitize filter for URL
 	 *
-	 * @return type
+	 * @return string
 	 */
 	public function url()
 	{

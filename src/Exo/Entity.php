@@ -254,7 +254,7 @@ abstract class Entity
 			$props = Map::arrayFilterKeys($props, $filter);
 		}
 
-		/* @var $prop \Exo\Entity\Property */
+		/** @var \Exo\Entity\Property $prop */
 		foreach($props as $prop)
 		{
 			// property is voidable + is void

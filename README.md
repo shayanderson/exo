@@ -393,7 +393,7 @@ class UserEntity extends \Exo\Entity
 	}
 }
 ```
-The Property `voidable()` method allows a property to be missing from the entity. This differs from the validator rule `optional` because optional requires the property to be present. Example usage for the property `createdAt` that may only be set once (during create operation):
+The Property `voidable()` method allows a property to be missing from the entity. This differs from the validator rule `optional` because optional requires the property to be present. If a property is voidable the *default value* will not be used when using the `toArray()` method and using allow voidables. Example usage for the property `createdAt` that may only be set once (during create operation):
 ```php
 $this->property('name')->validator()->string();
 $this->property('createdAt')

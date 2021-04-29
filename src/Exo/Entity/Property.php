@@ -270,7 +270,7 @@ class Property
 	}
 
 	/**
-	 * Check if is voidable and if value and default value do not exist
+	 * Check if is voidable and if value does not exist
 	 *
 	 * @return bool
 	 */
@@ -281,7 +281,7 @@ class Property
 			return false;
 		}
 
-		return !$this->isValue && !$this->isDefaultValue;
+		return !$this->isValue;
 	}
 
 	/**
