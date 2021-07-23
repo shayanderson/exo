@@ -207,7 +207,7 @@ class Logger
 	{
 		if(static::$context)
 		{
-			$context = $context ? $context + static::$context : static::$context;
+			$context = $context ? (array)$context + static::$context : static::$context;
 		}
 
 		$record = new Record($level, $message, $context, $this->channel);
